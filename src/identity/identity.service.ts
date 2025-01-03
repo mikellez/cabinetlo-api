@@ -12,7 +12,7 @@ export class IdentityService {
     @InjectRepository(Identity)
     private identityRepository: Repository<Identity>,
     private dataSource: DataSource,
-  ) { }
+  ) {}
 
   create(createIdentityDto: CreateIdentityDto) {
     return this.identityRepository.save(createIdentityDto);

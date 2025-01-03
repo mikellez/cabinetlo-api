@@ -9,12 +9,16 @@ import {
   UseInterceptors,
   UploadedFile,
   NotFoundException,
+  HttpException,
+  HttpStatus,
+  Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { IdentityService } from './identity.service';
 import { CreateIdentityDto } from './dto/create-identity.dto';
 import { UpdateIdentityDto } from './dto/update-identity.dto';
 import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
 
 import axios from 'axios';
 import * as fs from 'fs';
@@ -25,7 +29,7 @@ export class IdentityController {
   constructor(
     private readonly identityService: IdentityService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   @Post()
   create(@Body() createIdentityDto: CreateIdentityDto) {
@@ -58,8 +62,9 @@ export class IdentityController {
       const response = await axios.post(
         `${this.configService.get('DEEPFACE_API_URL')}/represent`,
         {
-          model_name: 'Facenet',
+          model_name: 'Facenet512',
           img: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+          anti_spoofing: true,
           //img: `${filePath}`,
         },
       );
@@ -80,7 +85,19 @@ export class IdentityController {
       );
       return savedImage;
     } catch (error) {
-      console.log(error);
+      if (error.response && error.response.data && error.response.data.error) {
+        // If the error is from Python with a spoof detection message
+        throw new HttpException(
+          `Spoof detected in the given image.`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      // Handle generic errors
+      throw new HttpException(
+        `Error occurred: ${error.response ? error.response.data : error.message}`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
@@ -95,8 +112,9 @@ export class IdentityController {
       const response = await axios.post(
         `${this.configService.get('DEEPFACE_API_URL')}/represent`,
         {
-          model_name: 'Facenet',
+          model_name: 'Facenet512',
           img: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+          anti_spoofing: true,
         },
       );
       console.log('response: ', response.data.results[0].embedding);
@@ -111,7 +129,19 @@ export class IdentityController {
 
       return identity;
     } catch (error) {
-      console.log(error);
+      if (error.response && error.response.data && error.response.data.error) {
+        // If the error is from Python with a spoof detection message
+        throw new HttpException(
+          `Spoof detected in the given image.`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      // Handle generic errors
+      throw new HttpException(
+        `Error occurred: ${error.response ? error.response.data : error.message}`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
@@ -136,5 +166,15 @@ export class IdentityController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.identityService.remove(+id);
+  }
+
+  @Get('download/:id')
+  async downloadImage(@Param('id') id: string, @Res() res: Response) {
+    const upload = await this.identityService.findOne(+id);
+    console.log('upload', upload);
+
+    res.set('Content-Type', upload.mimetype);
+    res.set('Content-Length', upload.buffer.length.toString()); // Optional: set the Content-Length if you know the size
+    res.send(upload.buffer); // Send the image buffer as a response
   }
 }

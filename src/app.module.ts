@@ -6,6 +6,8 @@ import { UserImageModule } from './user-image/user-image.module';
 import { IdentityModule } from './identity/identity.module';
 import { Identity } from './identity/entities/identity.entity';
 import { ConfigModule } from '@nestjs/config';
+import { InventoryModule } from './inventory/inventory.module';
+import { Inventory } from './inventory/entities/inventory.entity';
 
 @Module({
   imports: [
@@ -16,7 +18,7 @@ import { ConfigModule } from '@nestjs/config';
       username: 'postgres',
       password: 'password',
       database: 'example_db',
-      entities: [Identity],
+      entities: [Identity, Inventory],
       synchronize: false,
     }),
     ConfigModule.forRoot({
@@ -24,8 +26,9 @@ import { ConfigModule } from '@nestjs/config';
     }),
     UserImageModule,
     IdentityModule,
+    InventoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
