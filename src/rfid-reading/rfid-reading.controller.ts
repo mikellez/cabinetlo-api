@@ -7,17 +7,17 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { InventoryService } from './inventory.service';
-import { CreateInventoryDto } from './dto/create-inventory.dto';
-import { UpdateInventoryDto } from './dto/update-inventory.dto';
+import { RfidReadingService } from './rfid-reading.service';
+import { CreateRfidReadingDto } from './dto/create-rfid-reading.dto';
+import { UpdateRfidReadingDto } from './dto/update-rfid-reading.dto';
 
-@Controller('inventory')
-export class InventoryController {
-  constructor(private readonly inventoryService: InventoryService) { }
+@Controller('rfid-reading')
+export class RfidReadingController {
+  constructor(private readonly rfidReadingService: RfidReadingService) { }
 
   @Post()
-  create(@Body() createInventoryDto: CreateInventoryDto) {
-    return this.inventoryService.create(createInventoryDto);
+  create(@Body() createRfidReadingDto: CreateRfidReadingDto) {
+    return this.rfidReadingService.create(createRfidReadingDto);
   }
 
   @Post('rfid')
@@ -33,31 +33,31 @@ export class InventoryController {
     console.log('Cleaned RFID Tags:', cleanTags);
 
     // Example: Call the service to process the cleaned tags
-    return this.inventoryService.updateInventory(cleanTags);
+    return this.rfidReadingService.saveRfidReading(cleanTags);
 
     return { tags: cleanTags }; // Return the cleaned tags as a response
   }
 
   @Get()
   findAll() {
-    return this.inventoryService.findAll();
+    return this.rfidReadingService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.inventoryService.findOne(+id);
+    return this.rfidReadingService.findOne(+id);
   }
 
   @Patch(':id')
   update(
     @Param('id') id: string,
-    @Body() updateInventoryDto: UpdateInventoryDto,
+    @Body() updateRfidReadingDto: UpdateRfidReadingDto,
   ) {
-    return this.inventoryService.update(+id, updateInventoryDto);
+    return this.rfidReadingService.update(+id, updateRfidReadingDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.inventoryService.remove(+id);
+    return this.rfidReadingService.remove(+id);
   }
 }

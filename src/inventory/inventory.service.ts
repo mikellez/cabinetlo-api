@@ -23,4 +23,6 @@ export class InventoryService {
   remove(id: number) {
     return `This action removes a #${id} inventory`;
   }
+
+  updateInventory(tags: string[]) { }
 }
