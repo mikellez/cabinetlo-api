@@ -4,7 +4,10 @@ import { UpdateIdentityDto } from './dto/update-identity.dto';
 import { Repository, DataSource } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Identity } from './entities/identity.entity';
-import pgvector from 'pgvector';
+import { Client } from 'ssh2';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 @Injectable()
 export class IdentityService {
@@ -12,7 +15,7 @@ export class IdentityService {
     @InjectRepository(Identity)
     private identityRepository: Repository<Identity>,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   create(createIdentityDto: CreateIdentityDto) {
     return this.identityRepository.save(createIdentityDto);
@@ -79,5 +82,105 @@ export class IdentityService {
 
   remove(id: number) {
     return this.identityRepository.delete(id);
+  }
+
+  openLock() {
+    const sshClient = new Client();
+    const raspberryPiIp = '192.168.100.75'; // Replace with your Raspberry Pi's IP address
+    const sshUsername = 'zuyao'; // The username for your Raspberry Pi (usually 'pi')
+
+    // Path to your private key file (on your NestJS server)
+    const privateKeyPath = path.join(os.homedir(), '.ssh', 'id_rsa');
+
+    return new Promise((resolve, reject) => {
+      sshClient
+        .on('ready', () => {
+          const command = `gpioset gpiochip0 12=0`;
+
+          // Execute the Python script remotely via SSH
+          sshClient.exec(command, (err, stream) => {
+            if (err) {
+              reject(`SSH Command Error: ${err.message}`);
+              return;
+            }
+
+            let output = '';
+            let error = '';
+
+            stream.on('data', (data) => {
+              output += data.toString();
+            });
+
+            stream.on('stderr', (data) => {
+              error += data.toString();
+            });
+
+            stream.on('close', (code) => {
+              sshClient.end();
+              if (code === 0) {
+                resolve(output.trim());
+              } else {
+                reject(`Error: ${error}`);
+              }
+            });
+          });
+        })
+        .connect({
+          host: raspberryPiIp,
+          port: 22,
+          username: sshUsername,
+          privateKey: fs.readFileSync(privateKeyPath), // Use the private key file
+        });
+    });
+  }
+
+  closeLock() {
+    const sshClient = new Client();
+    const raspberryPiIp = '192.168.100.75'; // Replace with your Raspberry Pi's IP address
+    const sshUsername = 'zuyao'; // The username for your Raspberry Pi (usually 'pi')
+
+    // Path to your private key file (on your NestJS server)
+    const privateKeyPath = path.join(os.homedir(), '.ssh', 'id_rsa');
+
+    return new Promise((resolve, reject) => {
+      sshClient
+        .on('ready', () => {
+          const command = `gpioset gpiochip0 12=1`;
+
+          // Execute the Python script remotely via SSH
+          sshClient.exec(command, (err, stream) => {
+            if (err) {
+              reject(`SSH Command Error: ${err.message}`);
+              return;
+            }
+
+            let output = '';
+            let error = '';
+
+            stream.on('data', (data) => {
+              output += data.toString();
+            });
+
+            stream.on('stderr', (data) => {
+              error += data.toString();
+            });
+
+            stream.on('close', (code) => {
+              sshClient.end();
+              if (code === 0) {
+                resolve(output.trim());
+              } else {
+                reject(`Error: ${error}`);
+              }
+            });
+          });
+        })
+        .connect({
+          host: raspberryPiIp,
+          port: 22,
+          username: sshUsername,
+          privateKey: fs.readFileSync(privateKeyPath), // Use the private key file
+        });
+    });
   }
 }

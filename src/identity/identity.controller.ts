@@ -29,7 +29,7 @@ export class IdentityController {
   constructor(
     private readonly identityService: IdentityService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   @Post()
   create(@Body() createIdentityDto: CreateIdentityDto) {
@@ -62,7 +62,7 @@ export class IdentityController {
       const response = await axios.post(
         `${this.configService.get('DEEPFACE_API_URL')}/represent`,
         {
-          model_name: 'Facenet512',
+          model_name: 'Facenet',
           img: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
           anti_spoofing: true,
           //img: `${filePath}`,
@@ -112,7 +112,7 @@ export class IdentityController {
       const response = await axios.post(
         `${this.configService.get('DEEPFACE_API_URL')}/represent`,
         {
-          model_name: 'Facenet512',
+          model_name: 'Facenet',
           img: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
           anti_spoofing: true,
         },
@@ -126,6 +126,10 @@ export class IdentityController {
       console.log('identity', identity.length);
 
       if (identity.length <= 0) throw new NotFoundException();
+
+      //this.identityService.openLock();
+
+      //TODO: open magnetic lock
 
       return identity;
     } catch (error) {
@@ -148,6 +152,16 @@ export class IdentityController {
   @Get()
   findAll() {
     return this.identityService.findAll();
+  }
+
+  @Get('open-lock')
+  openLock() {
+    return this.identityService.openLock();
+  }
+
+  @Get('close-lock')
+  closeLock() {
+    return this.identityService.closeLock();
   }
 
   @Get(':id')

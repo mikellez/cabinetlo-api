@@ -24,7 +24,7 @@ import { InventoryGatewayModule } from './gateway/inventory.module';
       password: 'password',
       database: 'example_db',
       entities: [Identity, Inventory, RfidReading, CabinetInventory],
-      synchronize: true,
+      synchronize: false,
     }),
     ConfigModule.forRoot({
       envFilePath: '.env',
