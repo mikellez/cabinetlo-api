@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { CreateInventoryDto } from './dto/create-inventory.dto';
-import { UpdateInventoryDto } from './dto/update-inventory.dto';
+import { CreateInventoryRemovedDto } from './dto/create-inventory-removed.dto';
+import { UpdateInventoryRemovedDto } from './dto/update-inventory-removed.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Inventory } from './entities/inventory.entity';
+import { InventoryRemoved } from './entities/inventory-removed.entity';
 import { Repository } from 'typeorm';
 @Injectable()
-export class InventoryService {
+export class InventoryRemovedService {
   constructor(
-    @InjectRepository(Inventory)
-    private inventoryRepository: Repository<Inventory>,
+    @InjectRepository(InventoryRemoved)
+    private inventoryRemovedRepository: Repository<InventoryRemoved>,
   ) {}
 
-  create(createInventoryDto: CreateInventoryDto) {
+  create(createInventoryRemovedDto: CreateInventoryRemovedDto) {
     return 'This action adds a new inventory';
   }
 
@@ -23,7 +23,7 @@ export class InventoryService {
     return `This action returns a #${id} inventory`;
   }
 
-  update(id: number, updateInventoryDto: UpdateInventoryDto) {
+  update(id: number, updateInventoryRemovedDto: UpdateInventoryRemovedDto) {
     return `This action updates a #${id} inventory`;
   }
 
@@ -37,7 +37,7 @@ export class InventoryService {
     const { name, quantity, lastSeen } = item;
 
     // Check if item exists
-    let inventoryItem = await this.inventoryRepository.findOne({
+    let inventoryItem = await this.inventoryRemovedRepository.findOne({
       where: { name },
     });
 
@@ -47,17 +47,17 @@ export class InventoryService {
       inventoryItem.lastSeen = lastSeen;
     } else {
       // Create new item
-      inventoryItem = new Inventory();
+      inventoryItem = new InventoryRemoved();
       inventoryItem.name = name;
       inventoryItem.quantity = quantity;
       inventoryItem.lastSeen = lastSeen;
     }
 
-    return await this.inventoryRepository.save(inventoryItem);
+    return await this.inventoryRemovedRepository.save(inventoryItem);
   }
 
   async deleteItem(item: any) {
-    return await this.inventoryRepository.delete({
+    return await this.inventoryRemovedRepository.delete({
       name: item,
     });
   }

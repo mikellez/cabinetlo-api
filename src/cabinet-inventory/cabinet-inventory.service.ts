@@ -15,7 +15,7 @@ export class CabinetInventoryService {
     private cabinetInventoryRepository: Repository<CabinetInventory>,
     private readonly inventoryGateway: InventoryGateway,
     private dataSource: DataSource,
-  ) { }
+  ) {}
   create(createCabinetInventoryDto: CreateCabinetInventoryDto) {
     return 'This action adds a new cabinetInventory';
   }
@@ -151,7 +151,7 @@ export class CabinetInventoryService {
       .getMany();
   }
 
-  @Interval(1000)
+  //@Interval(1000)
   async handleUpdateCabinetInventory() {
     console.log('This runs every 1 seconds');
 

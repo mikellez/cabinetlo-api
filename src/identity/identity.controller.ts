@@ -12,6 +12,9 @@ import {
   HttpException,
   HttpStatus,
   Res,
+  UseGuards,
+  Request,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { IdentityService } from './identity.service';
@@ -19,6 +22,9 @@ import { CreateIdentityDto } from './dto/create-identity.dto';
 import { UpdateIdentityDto } from './dto/update-identity.dto';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 import axios from 'axios';
 import * as fs from 'fs';
@@ -29,7 +35,7 @@ export class IdentityController {
   constructor(
     private readonly identityService: IdentityService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   @Post()
   create(@Body() createIdentityDto: CreateIdentityDto) {
@@ -37,8 +43,13 @@ export class IdentityController {
   }
 
   @Post('register')
+  async register(@Body() registerDto: RegisterDto) {
+    return this.identityService.register(registerDto);
+  }
+
+  @Post('register_legacy')
   @UseInterceptors(FileInterceptor('image'))
-  async register(@UploadedFile() file: Express.Multer.File) {
+  async registerLegacy(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new Error('No file uploaded');
     }
@@ -99,6 +110,13 @@ export class IdentityController {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  @Post('login')
+  async login(@Body() loginDto: LoginDto) {
+    const { token, user } = await this.identityService.login(loginDto);
+    const refreshToken = await this.identityService.createRefreshToken(user.id);
+    return { token, refreshToken, user };
   }
 
   @Post('verify')
@@ -190,5 +208,56 @@ export class IdentityController {
     res.set('Content-Type', upload.mimetype);
     res.set('Content-Length', upload.buffer.length.toString()); // Optional: set the Content-Length if you know the size
     res.send(upload.buffer); // Send the image buffer as a response
+  }
+
+  @Post('refresh-token')
+  async refreshToken(@Body('refreshToken') refreshToken: string) {
+    return this.identityService.refreshAccessToken(refreshToken);
+  }
+
+  @Post('revoke-token')
+  @UseGuards(JwtAuthGuard)
+  async revokeToken(@Body('refreshToken') refreshToken: string) {
+    await this.identityService.revokeRefreshToken(refreshToken);
+    return { message: 'Token revoked successfully' };
+  }
+
+  @Post('request-password-reset')
+  async requestPasswordReset(@Body('email') email: string) {
+    return this.identityService.requestPasswordReset(email);
+  }
+
+  @Post('reset-password')
+  async resetPassword(
+    @Body('token') token: string,
+    @Body('newPassword') newPassword: string,
+  ) {
+    return this.identityService.resetPassword(token, newPassword);
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Request() req) {
+    return this.identityService.findUserById(req.user.id);
+  }
+
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(@Request() req, @Body() updateData: any) {
+    return this.identityService.updateProfile(req.user.id, updateData);
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @Request() req,
+    @Body('oldPassword') oldPassword: string,
+    @Body('newPassword') newPassword: string,
+  ) {
+    return this.identityService.changePassword(
+      req.user.id,
+      oldPassword,
+      newPassword,
+    );
   }
 }

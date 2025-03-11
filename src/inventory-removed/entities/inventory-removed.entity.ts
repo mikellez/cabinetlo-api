@@ -13,7 +13,7 @@ export enum InventoryStatus {
 }
 
 @Entity()
-export class Inventory {
+export class InventoryRemoved {
   @PrimaryGeneratedColumn()
   id: number;
 
