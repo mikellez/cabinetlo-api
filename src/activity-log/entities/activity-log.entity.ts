@@ -1,19 +1,28 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
-export class CabinetItem {
+export class ActivityLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
-  tag_id: string;
+  action: string;
 
   @Column()
-  tag_name: string;
+  entity_type: string;
+
+  @Column()
+  entity_id: string;
+
+  @Column()
+  detail: string;
 
   @Column()
   status: number;
 
+  @Column('uuid', { nullable: true })
+  user_id: string;
+
   @Column('bigint', { nullable: true })
-  last_seen: number;
+  created_at: number;
 }

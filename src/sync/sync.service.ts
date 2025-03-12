@@ -24,12 +24,12 @@ export class SyncService {
 
   private mapDtoToEntity(
     dto: SyncSingleItemDto | SyncItem,
-    userId: number,
+    user_id: string,
     incrementVersion = true,
   ): Partial<InventoryItem> {
     return {
       id: dto.id,
-      userId,
+      user_id: user_id,
       name: dto.data.name,
       description: dto.data.description,
       quantity: dto.data.quantity,
@@ -60,18 +60,18 @@ export class SyncService {
   }
 
   async syncSingleItem(
-    userId: number,
+    user_id: string,
     dto: SyncSingleItemDto,
   ): Promise<SyncSingleResponseDto> {
     // Find existing item
     const existingItem = await this.inventoryRepository.findOne({
-      where: { id: dto.id, userId },
+      where: { id: dto.id, user_id: user_id },
     });
 
     // If item doesn't exist, create it
     if (!existingItem) {
       const newItem = await this.inventoryRepository.save(
-        this.mapDtoToEntity(dto, userId, false),
+        this.mapDtoToEntity(dto, user_id, false),
       );
 
       return {
@@ -85,7 +85,7 @@ export class SyncService {
       // Create conflict record
       await this.conflictRepository.save({
         itemId: dto.id,
-        userId,
+        user_id: user_id,
         clientVersion: dto.data,
         serverVersion: {
           name: existingItem.name,
@@ -118,7 +118,7 @@ export class SyncService {
 
     // Update the item
     const updatedItem = await this.inventoryRepository.save(
-      this.mapDtoToEntity(dto, userId),
+      this.mapDtoToEntity(dto, user_id),
     );
 
     return {
@@ -128,13 +128,13 @@ export class SyncService {
   }
 
   async fullSync(
-    userId: number,
+    user_id: string,
     dto: FullSyncRequestDto,
   ): Promise<FullSyncResponseDto> {
     // Get all server changes since last sync
     const serverChanges = await this.inventoryRepository.find({
       where: {
-        userId,
+        user_id: user_id,
         lastModified: MoreThanOrEqual(dto.lastSyncTimestamp.getTime()),
       },
     });
@@ -150,7 +150,7 @@ export class SyncService {
       if (!serverItem || serverItem.version === item.version) {
         // No conflict, update or create the item
         const savedItem = await this.inventoryRepository.save(
-          this.mapDtoToEntity(item, userId),
+          this.mapDtoToEntity(item, user_id),
         );
 
         if (savedItem.isDeleted) {
@@ -162,7 +162,7 @@ export class SyncService {
         // Create conflict record
         const conflict = await this.conflictRepository.save({
           itemId: item.id,
-          userId,
+          user_id: user_id,
           clientVersion: item.data,
           serverVersion: {
             name: serverItem.name,
@@ -208,19 +208,19 @@ export class SyncService {
   }
 
   private async handleResolvedConflicts(
-    userId: number,
+    user_id: string,
     resolvedConflicts: SyncConflict[],
   ) {
     for (const conflict of resolvedConflicts) {
       const existingConflict = await this.conflictRepository.findOne({
-        where: { id: conflict.id, userId },
+        where: { id: conflict.id, user_id: user_id },
       });
 
       if (existingConflict && !existingConflict.resolved) {
         // Update the item with the resolved version
         const resolvedItem = {
           id: conflict.itemId,
-          userId,
+          user_id: user_id,
           ...conflict.clientVersion,
           version:
             Math.max(

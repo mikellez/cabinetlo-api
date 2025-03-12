@@ -12,8 +12,8 @@ import { InventoryItem } from '../../sync/entities/inventory-item.entity';
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ unique: true })
   email: string;
@@ -23,23 +23,23 @@ export class User {
   password: string;
 
   @Column({ nullable: true })
-  firstName: string;
+  first_name: string;
 
   @Column({ nullable: true })
-  lastName: string;
+  last_name: string;
 
   @Column({ default: true })
-  isActive: boolean;
+  is_active: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updated_at: Date;
 
   @OneToMany(() => SyncConflict, (syncConflict) => syncConflict.user)
-  syncConflicts: SyncConflict[];
+  sync_conflicts: SyncConflict[];
 
   @OneToMany(() => InventoryItem, (inventoryItem) => inventoryItem.user)
-  inventoryItems: InventoryItem[];
+  inventory_items: InventoryItem[];
 }

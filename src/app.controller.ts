@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body } from '@nestjs/common';
 import { AppService } from './app.service';
 import { InventoryRemovedService } from './inventory-removed/inventory-removed.service';
 import { InventoryService } from './inventory/inventory.service';
+import { CabinetItemService } from './cabinet-item/cabinet-item.service';
 
 @Controller()
 export class AppController {
@@ -9,6 +10,7 @@ export class AppController {
     private readonly appService: AppService,
     private readonly inventoryRemovedService: InventoryRemovedService,
     private readonly inventoryService: InventoryService,
+    private readonly cabinetItemService: CabinetItemService,
   ) {}
 
   @Get()
@@ -35,7 +37,7 @@ export class AppController {
         return this.inventoryRemovedService.deleteItem(item);
       } else if (type === 'addOrUpdateItem') {
         console.log('here addOrUpdateItem');
-        return this.inventoryService.addOrUpdateItem(item);
+        return this.cabinetItemService.addOrUpdateItem(item);
       } else if (type === 'deleteItem') {
         console.log('here deleteItem');
         return this.inventoryService.deleteItem(item);

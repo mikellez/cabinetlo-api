@@ -4,6 +4,7 @@ import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Inventory } from './entities/inventory.entity';
 import { Repository } from 'typeorm';
+import { last } from 'rxjs';
 @Injectable()
 export class InventoryService {
   constructor(
@@ -34,7 +35,7 @@ export class InventoryService {
   updateInventory(tags: string[]) {}
 
   async addOrUpdateItem(item: any) {
-    const { name, quantity, lastSeen } = item;
+    const { name, quantity, last_seen } = item;
 
     // Check if item exists
     let inventoryItem = await this.inventoryRepository.findOne({
@@ -44,13 +45,13 @@ export class InventoryService {
     if (inventoryItem) {
       // Update existing item
       inventoryItem.quantity = quantity;
-      inventoryItem.lastSeen = lastSeen;
+      inventoryItem.last_seen = last_seen;
     } else {
       // Create new item
       inventoryItem = new Inventory();
       inventoryItem.name = name;
       inventoryItem.quantity = quantity;
-      inventoryItem.lastSeen = lastSeen;
+      inventoryItem.last_seen = last_seen;
     }
 
     return await this.inventoryRepository.save(inventoryItem);

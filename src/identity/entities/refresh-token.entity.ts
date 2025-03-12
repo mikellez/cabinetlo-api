@@ -16,17 +16,17 @@ export class RefreshToken {
   token: string;
 
   @Column()
-  expiresAt: Date;
+  expires_at: Date;
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
   @Column()
-  userId: number;
+  user_id: string;
 
   @Column({ default: false })
-  isRevoked: boolean;
+  is_revoked: boolean;
 }

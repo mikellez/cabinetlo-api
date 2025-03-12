@@ -24,7 +24,7 @@ export class Inventory {
   quantity: number;
 
   @Column({ type: 'bigint', nullable: true })
-  lastSeen: number;
+  last_seen: number;
 
   /*@Column({ type: 'text', nullable: true })
   description: string;

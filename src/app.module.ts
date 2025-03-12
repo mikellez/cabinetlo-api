@@ -27,6 +27,8 @@ import { CabinetItem } from './cabinet-item/entities/cabinet-item.entity';
 import { Product } from './product/entities/product.entity';
 import { Tag } from './tag/entities/tag.entity';
 import { join } from 'path';
+import { ActivityLogModule } from './activity-log/activity-log.module';
+import { ActivityLog } from './activity-log/entities/activity-log.entity';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -47,6 +49,7 @@ import { join } from 'path';
         CabinetItem,
         Product,
         Tag,
+        ActivityLog,
       ],
       synchronize: true,
     }),
@@ -64,6 +67,7 @@ import { join } from 'path';
     CabinetItemModule,
     ProductModule,
     TagModule,
+    ActivityLogModule,
   ],
   controllers: [AppController],
   providers: [AppService],

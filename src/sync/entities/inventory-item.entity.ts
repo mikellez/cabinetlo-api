@@ -40,15 +40,15 @@ export class InventoryItem {
   @Column({ default: false })
   isDeleted: boolean;
 
-  @ManyToOne(() => User, (user) => user.inventoryItems)
+  @ManyToOne(() => User, (user) => user.inventory_items)
   user: User;
 
   @Column()
-  userId: number;
+  user_id: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updated_at: Date;
 }

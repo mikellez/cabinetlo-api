@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CabinetItemService } from './cabinet-item.service';
 import { CreateCabinetItemDto } from './dto/create-cabinet-item.dto';
 import { UpdateCabinetItemDto } from './dto/update-cabinet-item.dto';
@@ -19,14 +27,16 @@ export class CabinetItemController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.cabinetItemService.findOne(+id);
+    return this.cabinetItemService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCabinetItemDto: UpdateCabinetItemDto) {
-    return this.cabinetItemService.update(+id, updateCabinetItemDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateCabinetItemDto: UpdateCabinetItemDto,
+  ) {
+    return this.cabinetItemService.update(id, updateCabinetItemDto);
   }
-
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.cabinetItemService.remove(+id);

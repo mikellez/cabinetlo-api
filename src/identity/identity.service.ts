@@ -250,13 +250,13 @@ export class IdentityService {
       user: {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        first_name: user.first_name,
+        last_name: user.last_name,
       },
     };
   }
 
-  async findUserById(id: number) {
+  async findUserById(id: string) {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new UnauthorizedException('User not found');
@@ -269,7 +269,7 @@ export class IdentityService {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async createRefreshToken(userId: number): Promise<string> {
+  async createRefreshToken(userId: string): Promise<string> {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30); // 30 days from now
 
@@ -285,11 +285,11 @@ export class IdentityService {
 
   async refreshAccessToken(refreshToken: string) {
     const token = await this.refreshTokenRepository.findOne({
-      where: { token: refreshToken, isRevoked: false },
+      where: { token: refreshToken, is_revoked: false },
       relations: ['user'],
     });
 
-    if (!token || token.expiresAt < new Date() || !token.user) {
+    if (!token || token.expires_at < new Date() || !token.user) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
@@ -301,14 +301,14 @@ export class IdentityService {
       user: {
         id: token.user.id,
         email: token.user.email,
-        firstName: token.user.firstName,
-        lastName: token.user.lastName,
+        first_name: token.user.first_name,
+        last_name: token.user.last_name,
       },
     };
   }
 
   async revokeRefreshToken(token: string) {
-    await this.refreshTokenRepository.update({ token }, { isRevoked: true });
+    await this.refreshTokenRepository.update({ token }, { is_revoked: true });
   }
 
   async requestPasswordReset(email: string) {
@@ -323,8 +323,8 @@ export class IdentityService {
 
     await this.passwordResetRepository.save({
       token,
-      userId: user.id,
-      expiresAt,
+      user_id: user.id,
+      expires_at: expiresAt,
     });
 
     // TODO: Send email with reset link
@@ -333,32 +333,34 @@ export class IdentityService {
 
   async resetPassword(token: string, newPassword: string) {
     const resetToken = await this.passwordResetRepository.findOne({
-      where: { token, isUsed: false },
+      where: { token, is_used: false },
       relations: ['user'],
     });
 
-    if (!resetToken || resetToken.expiresAt < new Date() || !resetToken.user) {
+    if (!resetToken || resetToken.expires_at < new Date() || !resetToken.user) {
       throw new UnauthorizedException('Invalid or expired reset token');
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await this.userRepository.update(resetToken.userId, {
+    await this.userRepository.update(resetToken.user_id, {
       password: hashedPassword,
     });
 
-    await this.passwordResetRepository.update(resetToken.id, { isUsed: true });
+    await this.passwordResetRepository.update(resetToken.id, {
+      is_used: true,
+    });
 
     return { message: 'Password successfully reset' };
   }
 
-  async updateProfile(userId: number, updateData: Partial<User>) {
+  async updateProfile(userId: string, updateData: Partial<User>) {
     const { password, ...safeUpdateData } = updateData;
     await this.userRepository.update(userId, safeUpdateData);
     return this.findUserById(userId);
   }
 
   async changePassword(
-    userId: number,
+    userId: string,
     oldPassword: string,
     newPassword: string,
   ) {

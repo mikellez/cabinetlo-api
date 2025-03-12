@@ -33,12 +33,12 @@ export class SyncConflict {
   @Column({ default: false })
   resolved: boolean;
 
-  @ManyToOne(() => User, (user) => user.syncConflicts)
+  @ManyToOne(() => User, (user) => user.sync_conflicts)
   user: User;
 
   @Column()
-  userId: number;
+  user_id: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 }
